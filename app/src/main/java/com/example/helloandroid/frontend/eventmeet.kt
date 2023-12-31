@@ -39,6 +39,7 @@ fun eventmeet(navController: NavController) {
     var nameState by remember { mutableStateOf("") }
     var emailState by remember { mutableStateOf("") }
     var eventState by remember { mutableStateOf("") }
+    var zoomState by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text(text = "Event Meet", style = MaterialTheme.typography.headlineLarge)
@@ -66,6 +67,15 @@ fun eventmeet(navController: NavController) {
             value = emailState,
             onValueChange = { emailState = it },
             label = { Text("email pembuat") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = zoomState,
+            onValueChange = { zoomState = it },
+            label = { Text("link invitation") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
