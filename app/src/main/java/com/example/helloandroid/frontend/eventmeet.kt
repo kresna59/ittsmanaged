@@ -38,6 +38,7 @@ import com.example.helloandroid.R
 fun eventmeet(navController: NavController) {
     var nameState by remember { mutableStateOf("") }
     var emailState by remember { mutableStateOf("") }
+    var eventState by remember { mutableStateOf("") }
 
     Column(modifier = Modifier.padding(16.dp)) {
         Text(text = "Event Meet", style = MaterialTheme.typography.headlineLarge)
@@ -46,7 +47,16 @@ fun eventmeet(navController: NavController) {
         OutlinedTextField(
             value = nameState,
             onValueChange = { nameState = it },
-            label = { Text("Name") },
+            label = { Text("Nama Pembuat") },
+            singleLine = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        OutlinedTextField(
+            value = eventState,
+            onValueChange = { eventState = it },
+            label = { Text("Nama Event") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
@@ -55,7 +65,7 @@ fun eventmeet(navController: NavController) {
         OutlinedTextField(
             value = emailState,
             onValueChange = { emailState = it },
-            label = { Text("Email") },
+            label = { Text("email pembuat") },
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
