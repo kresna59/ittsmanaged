@@ -108,6 +108,8 @@ fun HomePage(navController: NavController, context: Context = LocalContext.curre
         }
 
     })
+
+
     Scaffold(
         topBar = {
 
@@ -208,11 +210,11 @@ fun HomePage(navController: NavController, context: Context = LocalContext.curre
                             modifier = Modifier
                                 .height(60.dp)
                                 .width(60.dp)
-                                .clickable { navController.navigate("penitipan") }
+                                .clickable { navController.navigate("meetingroom") }
                         )
                     }
 
-                    Text(text = "daftar peserta")
+                    Text(text = "meeting room")
                 }
 
                 Column(

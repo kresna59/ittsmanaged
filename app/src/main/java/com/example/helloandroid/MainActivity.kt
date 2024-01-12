@@ -19,6 +19,7 @@ import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -64,6 +65,8 @@ import com.example.helloandroid.frontend.Homepage
 import com.example.helloandroid.frontend.WelcomePage
 import com.example.helloandroid.frontend.eventmeet
 import com.example.helloandroid.frontend.listevent
+import com.example.helloandroid.frontend.meetingroom
+import com.example.helloandroid.frontend.testpage
 import com.example.helloandroid.respon.LoginRespon
 import com.example.helloandroid.service.LoginService
 import kotlinx.coroutines.launch
@@ -73,6 +76,7 @@ import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+val Purple = Color(0xFF800080)
 class MainActivity : ComponentActivity() {
 
 
@@ -84,6 +88,7 @@ class MainActivity : ComponentActivity() {
             val sharedPreferences: SharedPreferences =
                 LocalContext.current.getSharedPreferences("auth", Context.MODE_PRIVATE)
             val navController = rememberNavController()
+            val baseUrl = "http://10.0.2.2/api/"
 
             var startDestination: String
             var jwt = sharedPreferences.getString("jwt", "")
@@ -98,8 +103,8 @@ class MainActivity : ComponentActivity() {
                 drawerState = drawerState,
                 drawerContent = {
                     ModalDrawerSheet {
-                        Text("HomePage", modifier = Modifier.padding(16.dp))
-                        Divider()
+                        Text("HomePage", modifier = Modifier.padding(16.dp), color = Color.Green)
+                        Divider(color = Color.Green)
                         NavigationDrawerItem(
                             label = { Text(text = "Add User") },
                             selected = false,
@@ -126,9 +131,36 @@ class MainActivity : ComponentActivity() {
                             }
 
                         )
+
+                        Divider()
+                        NavigationDrawerItem(
+                            label = { Text(text = "testpage") },
+                            selected = false,
+                            onClick = {
+                                navController.navigate("testpage")
+                                scope.launch {
+                                    drawerState.close()
+                                }
+
+                            }
+
+                        )
+                        Divider()
+                        NavigationDrawerItem(
+                            label = { Text(text = "meetingroom") },
+                            selected = false,
+                            onClick = {
+                                navController.navigate("meetingroom")
+                                scope.launch {
+                                    drawerState.close()
+                                }
+
+                            }
+                        )
                         // ...other drawer items
 
                     }
+
                 }
             ) {
                 Scaffold(
@@ -187,21 +219,26 @@ class MainActivity : ComponentActivity() {
                                 backStackEntry.arguments?.getString("username")
                             )
                         }
-                        composable(route = "welcome"){
+                        composable(route = "welcome") {
                             WelcomePage(navController)
                         }
-                        composable(route = "test"){
+                        composable(route = "test") {
                             HomePage(navController)
                         }
-                        composable(route = "test2"){
+                        composable(route = "test2") {
                             listevent(navController)
                         }
-                        composable(route = "eventmeet"){
-                            eventmeet(navController)
+                        composable(route = "eventmeet") {
+                            eventmeet(navController, baseUrl = baseUrl)
+                        }
+                        composable(route = "testpage") {
+                            testpage(navController)
+                        }
+                        composable(route = "meetingroom") {
+                            meetingroom(navController)
                         }
                     }
                 }
-            }
 
 //            NavHost(navController, startDestination = startDestination) {
 //                composable(route = "greeting") {
@@ -220,99 +257,100 @@ class MainActivity : ComponentActivity() {
 //                    EditUserPage(navController, backStackEntry.arguments?.getString("userid"), backStackEntry.arguments?.getString("username"))
 //                }
 //            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-
-fun Greeting(navController: NavController, context: Context = LocalContext.current) {
-
-    val preferencesManager = remember { PreferencesManager(context = context) }
-    var username by remember { mutableStateOf(TextFieldValue("")) }
-    var password by remember { mutableStateOf(TextFieldValue("")) }
-    var baseUrl = "http://10.0.2.2:1337/api/"
-    var jwt by remember { mutableStateOf("") }
-
-    jwt = preferencesManager.getData("jwt")
-
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text(text = "Login") },
-                colors = TopAppBarDefaults.smallTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
-                ),
-            )
-        }
-    ) {
-
-            innerPadding ->
-        Box(modifier = Modifier.fillMaxSize()) {
-            Image(
-                painter = painterResource(id = R.drawable.bg),
-                contentDescription = "",
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier.matchParentSize()
-            )
-
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            TextField(value = username, onValueChange = { newText ->
-                username = newText
-            }, label = { Text("Username") })
-            TextField(value = password, onValueChange = { newText ->
-                password = newText
-            }, label = { Text("Password") })
-            ElevatedButton(onClick = {
-                //navController.navigate("pagetwo")
-                val retrofit = Retrofit.Builder()
-                    .baseUrl(baseUrl)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
-                    .create(LoginService::class.java)
-                val call = retrofit.getData(LoginData(username.text, password.text))
-                call.enqueue(object : Callback<LoginRespon> {
-                    override fun onResponse(
-                        call: Call<LoginRespon>,
-                        response: Response<LoginRespon>
-                    ) {
-                        print(response.code())
-                        if (response.code() == 200) {
-                            jwt = response.body()?.jwt!!
-                            preferencesManager.saveData("jwt", jwt)
-                            navController.navigate("pagetwo")
-                        } else if (response.code() == 400) {
-                            print("error login")
-                            var toast = Toast.makeText(
-                                context,
-                                "Username atau password salah",
-                                Toast.LENGTH_SHORT
-                            ).show()
-
-                        }
-                    }
-
-                    override fun onFailure(call: Call<LoginRespon>, t: Throwable) {
-                        print(t.message)
-                    }
-
-                })
-
-
-            }) {
-                Text(text = "Submit")
             }
-            Text(text = jwt)
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+
+    fun Greeting(navController: NavController, context: Context = LocalContext.current) {
+
+        val preferencesManager = remember { PreferencesManager(context = context) }
+        var username by remember { mutableStateOf(TextFieldValue("")) }
+        var password by remember { mutableStateOf(TextFieldValue("")) }
+        var baseUrl = "http://10.0.2.2:1337/api/"
+        var jwt by remember { mutableStateOf("") }
+
+        jwt = preferencesManager.getData("jwt")
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = { Text(text = "Login") },
+                    colors = TopAppBarDefaults.smallTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                )
+            }
+        ) {
+
+                innerPadding ->
+            Box(modifier = Modifier.fillMaxSize()) {
+                Image(
+                    painter = painterResource(id = R.drawable.bg),
+                    contentDescription = "",
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier.matchParentSize()
+                )
+
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                TextField(value = username, onValueChange = { newText ->
+                    username = newText
+                }, label = { Text("Username") })
+                TextField(value = password, onValueChange = { newText ->
+                    password = newText
+                }, label = { Text("Password") })
+                ElevatedButton(onClick = {
+                    //navController.navigate("pagetwo")
+                    val retrofit = Retrofit.Builder()
+                        .baseUrl(baseUrl)
+                        .addConverterFactory(GsonConverterFactory.create())
+                        .build()
+                        .create(LoginService::class.java)
+                    val call = retrofit.getData(LoginData(username.text, password.text))
+                    call.enqueue(object : Callback<LoginRespon> {
+                        override fun onResponse(
+                            call: Call<LoginRespon>,
+                            response: Response<LoginRespon>
+                        ) {
+                            print(response.code())
+                            if (response.code() == 200) {
+                                jwt = response.body()?.jwt!!
+                                preferencesManager.saveData("jwt", jwt)
+                                navController.navigate("pagetwo")
+                            } else if (response.code() == 400) {
+                                print("error login")
+                                var toast = Toast.makeText(
+                                    context,
+                                    "Username atau password salah",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+
+                            }
+                        }
+
+                        override fun onFailure(call: Call<LoginRespon>, t: Throwable) {
+                            print(t.message)
+                        }
+
+                    })
+
+
+                }) {
+                    Text(text = "Submit")
+                }
+                Text(text = jwt)
+            }
+        }
+
+    }
 }
